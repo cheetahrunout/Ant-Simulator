@@ -1,0 +1,11 @@
+Walking ant sprite (walk cycle + parts)
+======================================
+
+Source: https://opengameart.org/content/walking-ant-with-parts-and-rigged-spriter-file
+Author: OpenGameArt upload (see page)
+License: CC0 (public domain)
+
+Files used by the simulator:
+  walk_strip.png / walk_strip.json  — baked from walking_7.gif for runtime
+
+Original pack also includes Spriter project under Spriter_0/ (parts + rig).

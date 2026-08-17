@@ -1,0 +1,4 @@
+Nest floor and wall textures: base materials generated with xAI Imagine.
+Autotile wall pieces (corners, straights, T-junctions, ends, cross) built from wall_base with edge bevels for 4-neighbor masks.
+floor_0..3: seamless packed-earth chamber floors (damp nest soil).
+wall_00..15: bitmask N=1 E=2 S=4 W=8 (neighbor is wall).

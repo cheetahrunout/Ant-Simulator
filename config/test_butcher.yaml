@@ -1,0 +1,116 @@
+# Butcher / multi-ant haul test: small nest, 10 ants, one cricket.
+# Run:  python -m src.main config/test_butcher.yaml
+
+window:
+  title: "Ant Simulator — BUTCHER TEST (cricket)"
+  width: 1280
+  height: 720
+
+sim:
+  seed: 7
+
+world:
+  width: 900.0
+  height: 600.0
+  tile_size: 10.0
+  wrap: true
+
+camera:
+  start_zoom: 1.35
+  min_zoom: 0.2
+  max_zoom: 3.5
+
+ants:
+  count: 10
+  strength: 1.0
+  speed: 70.0
+
+food:
+  sources:
+    # One cricket near home tunnel mouth (stay inside early search range)
+    - tile: [22, 48]
+      kind: cricket
+  respawn_when_empty: false
+
+forage:
+  leave_nest_rate: 0.9
+  leave_nest_empty_scale: 2.0
+  leave_nest_full_scale: 0.4
+  # Faster dismantle so the demo is watchable
+  break_work: 4.0
+  break_rate_solo: 1.2
+  butcher_linger_speed: 0.2
+  butcher_linger_weight: 4.5
+  butcher_meander_scale: 0.06
+  weight_ref: 2.0
+  haul_gain: 1.0
+  reverse_haul_scale: 0.55
+  max_haul_turn: 2.8
+  min_search_range: 200.0
+  max_search_range: 500.0
+  search_range_grow_time: 35.0
+  max_outbound_time: 120.0
+  food_sense_distance: 70.0
+  food_seek_weight: 3.2
+
+pheromone:
+  deposit_amount: 12.0
+  trail_evaporation: 4.0
+  trail_high_threshold: 40.0
+  trail_high_fade_rate: 0.5
+  diffusion: 0.06
+  floor: 0.5
+  nest_seed: 40.0
+  nest_emit_rate: 28.0
+
+# Compact home nest; empty sites parked far / unused for this test
+nest:
+  home:
+    name: "home"
+    layout: organic
+    preset: home
+    origin_tile: [6, 16]
+    soil_tiles: [32, 22]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 5
+    entrance_length_tiles: 6
+    cargo_path: false
+    light_level: 0.12
+    chamber_tiles: [12, 10]
+    tunnel_length_tiles: 6
+    tunnel_width_tiles: 5
+
+  empty_good:
+    name: "empty_good"
+    layout: organic
+    preset: good
+    origin_tile: [70, 5]
+    soil_tiles: [16, 14]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 3
+    entrance_length_tiles: 3
+    light_level: 0.08
+    chamber_tiles: [8, 6]
+    tunnel_length_tiles: 3
+    tunnel_width_tiles: 2
+
+  empty_poor:
+    name: "empty_poor"
+    layout: organic
+    preset: poor
+    origin_tile: [70, 45]
+    soil_tiles: [16, 14]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 4
+    entrance_length_tiles: 3
+    light_level: 0.7
+    chamber_tiles: [8, 6]
+    tunnel_length_tiles: 3
+    tunnel_width_tiles: 2
+
+render:
+  show_pheromone: true
+  use_nest_tiles: true

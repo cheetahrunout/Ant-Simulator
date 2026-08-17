@@ -1,0 +1,102 @@
+# Small test map = top-left 1/10 of full world (same tile_size).
+# Use:  python -m src.main config/test_small.yaml
+# Or:   python -m tests.run_trail_test
+
+window:
+  title: "Ant Simulator — SMALL TEST (1/10 map)"
+  width: 1280
+  height: 720
+
+sim:
+  seed: 42
+
+world:
+  width: 2000.0
+  height: 1200.0
+  tile_size: 10.0
+  wrap: true
+
+camera:
+  start_zoom: 0.9
+  min_zoom: 0.15
+  max_zoom: 3.0
+
+ants:
+  count: 25
+
+food:
+  sources:
+    - tile: [62, 48]
+      kind: dung_fly
+      amount: 120          # smaller than default so trail test empties faster
+    - tile: [38, 78]
+      kind: fruit_fly
+    - tile: [90, 55]
+      kind: cricket
+      amount: 80           # light cricket for test timing
+  respawn_when_empty: false
+  respawn_min_dist_from_home: 80.0
+  respawn_max_dist_from_home: 400.0
+
+# Faster fade so trails clear soon after food is gone (main annoyance fix)
+pheromone:
+  deposit_amount: 12.0
+  trail_evaporation: 4.5
+  trail_high_threshold: 40.0
+  trail_high_fade_rate: 0.55
+  nest_evaporation: 0.8
+  diffusion: 0.06
+  floor: 0.5
+  nest_seed: 40.0
+  nest_emit_rate: 25.0
+
+# Home nest stays top-left; empty nests parked inside small map bounds
+nest:
+  home:
+    name: "home"
+    layout: organic
+    preset: home
+    origin_tile: [8, 32]
+    soil_tiles: [48, 26]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 5
+    entrance_length_tiles: 6
+    cargo_path: false
+    light_level: 0.12
+    chamber_tiles: [16, 12]
+    tunnel_length_tiles: 6
+    tunnel_width_tiles: 5
+
+  empty_good:
+    name: "empty_good"
+    layout: organic
+    preset: good
+    origin_tile: [140, 20]
+    soil_tiles: [28, 20]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 4
+    entrance_length_tiles: 5
+    light_level: 0.08
+    chamber_tiles: [10, 8]
+    tunnel_length_tiles: 4
+    tunnel_width_tiles: 3
+
+  empty_poor:
+    name: "empty_poor"
+    layout: organic
+    preset: poor
+    origin_tile: [20, 90]
+    soil_tiles: [30, 20]
+    wall_tiles: 2
+    gallery_width_tiles: 3
+    haul_width_tiles: 6
+    entrance_length_tiles: 4
+    light_level: 0.7
+    chamber_tiles: [10, 8]
+    tunnel_length_tiles: 4
+    tunnel_width_tiles: 3
+
+render:
+  show_pheromone: true

@@ -1,0 +1,15 @@
+Food insect sprites for Ant-Simulator (xAI Imagine + edit-chain).
+
+Whole-body identity anchors:
+  fruit_fly.png, dung_fly.png, cricket.png
+
+Per-kind folders (damage states + haul part chips):
+  fruit_fly/  — damage/0..5.png + wing_l/r, leg_1/2, head, body
+  dung_fly/   — damage/0..6.png + wing_l/r, leg_1/2/3, head, body
+  cricket/    — damage/0..7.png + wing_l/r, leg_1..4, head, body
+
+Carcass draw uses progressive damage/{n}.png (n = parts detached).
+Loose/hauled pieces use the named part PNGs (not yellow circles).
+
+Style: flat top-down illustration, transparent background, no ground shadow.
+Generated for this project; not third-party stock.

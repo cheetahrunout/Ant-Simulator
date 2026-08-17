@@ -1,0 +1,329 @@
+# Ant Simulator — default config (M1+)
+# Structure is tile-based: every cell is open | wall | nest | food.
+
+window:
+  width: 1280
+  height: 720
+  title: "Ant Simulator — Lasius niger (M1)"
+  fps_cap: 60
+
+sim:
+  fixed_dt: 1/60
+  # Keep at 1–2. High catch-up multiplies lag when each step is expensive (death spiral).
+  # At 500+ ants a step can be 50–150ms; running 2–4 steps/frame makes FPS worse.
+  max_substeps: 1
+  seed: 42
+
+world:
+  # Size in world units; snapped to whole tiles of tile_size
+  width: 20000.0
+  height: 12000.0
+  # Half previous size (was 20): each old cell is now 2×2 = 4 cells
+  tile_size: 10.0               # ONE grid for nest / wall / food / pheromone
+  wrap: true
+
+camera:
+  start_zoom: 0.55
+  min_zoom: 0.03
+  max_zoom: 3.0
+  pan_speed: 900.0
+  zoom_step: 0.12
+
+ants:
+  count: 35
+  add_batch: 5                # bottom bar "+N ants" button batch size
+  radius: 3.5
+  speed: 70.0
+  strength: 1.0               # monomorphic base; future castes/age can differ
+  color: [40, 40, 40]
+  sense_radius: 18.0
+  # OpenGameArt walking ant sprites (assets/ant/walk_strip.png)
+  use_sprites: true
+  sprite_world_height: 14.0   # body length in world units
+  sprite_stride: 10.0         # world units per full walk cycle
+  # Weak-trail ignore: if value ≤ this × deposit_amount, chance to ignore
+  # ignore_p = 1 − value/deposit_amount  (base 20 → at 10: 50%, at 5: 75%)
+  pheromone_ignore_below_fraction: 0.5
+  # 0 = immortal (default). Set mean_lifespan > 0 to enable age-death.
+  mean_lifespan: 0.0
+  queen_rate: 0.0               # new workers/s; 0 = off
+
+food:
+  # Prey kinds (bigger body → more food). amount/radius/sprite from kind unless overridden.
+  # radius_tiles = rings from center → footprint (2r+1)² tiles; sprite fills that box.
+  # fruit_fly  3×3  ~90 food
+  # dung_fly   5×5  ~360 food  ("fat/shit fly")
+  # cricket    7×7  ~900 food
+  types:
+    fruit_fly:
+      label: fruit fly
+      amount: 90
+      quality: 0.45
+      radius_tiles: 1
+      sprite: assets/food/fruit_fly.png
+      sprite_dir: assets/food/fruit_fly
+      color: [210, 170, 60]
+    dung_fly:
+      label: fat fly
+      amount: 360
+      quality: 0.85
+      radius_tiles: 2
+      sprite: assets/food/dung_fly.png
+      sprite_dir: assets/food/dung_fly
+      color: [80, 90, 140]
+    cricket:
+      label: cricket
+      amount: 900
+      quality: 1.15
+      radius_tiles: 3
+      sprite: assets/food/cricket.png
+      sprite_dir: assets/food/cricket
+      color: [150, 110, 55]
+  sources:
+    # tile: [col, row] center — kind supplies amount / radius / sprite
+    - tile: [74, 50]
+      kind: cricket
+    - tile: [38, 78]
+      kind: dung_fly
+    - tile: [95, 35]
+      kind: fruit_fly
+  respawn_when_empty: true
+  respawn_count_min: 1
+  respawn_count_max: 2
+  respawn_kinds: [fruit_fly, dung_fly, cricket]
+  # weights: small prey more common, cricket rarer jackpot
+  respawn_weights: [4, 2, 1]
+  respawn_min_dist_from_home: 220.0
+  respawn_max_dist_from_home: 750.0
+
+pheromone:
+  # cell_size ignored if world.tile_size set (kept for sidebar / legacy)
+  cell_size: 10.0
+  # --- Simple trail model ---
+  # Carriers drop a fixed chemical amount on each new tile (enter once).
+  # More ants on the path → more deposits → stronger trail (natural reinforce).
+  # Wind fades every active tile; food gone → no deposits → trail dies.
+  deposit_amount: 12.0                # chemical units per new tile while carrying
+  trail_evaporation: 4.0              # base wind: units/s on every trail tile
+  # Extra wind on tall peaks (above threshold): fraction of *excess* per second
+  # e.g. value 100, threshold 40, rate 0.5 → extra (100-40)*0.5 = 30/s
+  trail_high_threshold: 40.0
+  trail_high_fade_rate: 0.5
+  nest_evaporation: 0.6
+  diffusion: 0.06                     # mild path blur (0 = only walked tiles)
+  floor: 0.5                          # values below this → 0
+  nest_seed: 50.0
+  nest_emit_rate: 30.0
+
+forage:
+  # Base leave rate; scaled by each ant's nest_food_memory (stock last seen inside).
+  leave_nest_rate: 0.45
+  leave_nest_store_ref: 400.0   # memory level that mid-scales leave urge
+  leave_nest_empty_scale: 1.8   # multiplier when memory ≈ 0 (hungry → leave more)
+  leave_nest_full_scale: 0.25   # multiplier when memory ≫ ref (stocked → stay)
+  start_explore_rate: 0.5
+  trail_follow_weight: 1.9
+  nest_follow_weight: 2.2
+  entrance_seek_weight: 1.6
+  leave_nest_weight: 1.1
+  lost_home_weight: 2.0
+  edge_home_weight: 0.7
+  trail_follow_min: 0.5
+  trail_sense_distance: 32.0
+  trail_sense_angle: 0.55
+  # Antenna food sense: range from prey surface, half-angle cone (rad)
+  food_sense_distance: 48.0
+  food_sense_angle: 0.95
+  food_seek_weight: 2.6
+  food_meander_scale: 0.2
+  food_vs_trail_scale: 0.35   # trail weight scale when food is also sensed
+  outbound_meander_scale: 0.4
+  search_meander_scale: 1.15
+  return_meander_scale: 0.1
+  return_trail_weight: 0.2
+  pickup_amount: 6.0
+  carry_speed_scale: 0.82
+  unload_radius: 14.0
+  max_outbound_time: 70.0
+  # Scout range grows with fruitless outbound time (min → max over grow_time)
+  min_search_range: 120.0
+  max_search_range: 850.0
+  search_range_grow_time: 45.0
+  stuck_timeout: 10.0
+  stuck_move_epsilon: 0.4
+  # --- Prey disassembly + multi-ant haul ---
+  break_work: 6.0             # work units to free one part
+  break_rate_solo: 1.0        # work/s × strength per ant on carcass
+  butcher_linger_speed: 0.22  # speed scale while on carcass dismantling (≤1)
+  butcher_linger_weight: 4.0  # steer hard toward carcass center while working
+  butcher_meander_scale: 0.08 # almost no wander while butchering
+  max_carriers_per_part: 4    # max ants locked onto one food piece
+  # --- Haul physics (force sum; food is passive) ---
+  # speed ≈ base * alignment * ant_mass / (ant_mass + weight * food_mass_scale)
+  ant_mass: 1.0               # ant mass unit (strength 1 → mass 1)
+  food_mass_scale: 1.0        # multiplies part.weight (raise to make all loads heavier)
+  haul_pull_force: 1.0        # force per unit strength
+  haul_gain: 1.0              # overall speed scale after mass formula
+  solo_haul_speed_percent: 40 # solo never faster than this % of base (1–100)
+  multi_haul_speed_scale: 0.55 # 2+ ants: hard cap as fraction of base
+  reverse_haul_scale: 0.55    # weaker force when walking backward
+  cargo_path_min_weight: 3.5  # heavy hauls approach wide cargo entrance
+  haul_stuck_time: 1.4        # seconds of failed personal pull → ±90° detour
+  haul_unstick_blocks: 4.0
+  haul_unstick_block_size: 10.0
+  haul_pull_success_frac: 0.25  # success if motion ≥ this × expected step
+  haul_regrip_cooldown: 2.5
+  haul_wall_crawl_frac: 0.10  # min speed vs base when sliding on walls (heavy loads)
+  haul_consensus_blend: 0.55  # multi-haul: pull toward average heading (anti-cancel)
+  haul_group_jam_time: 1.5    # no progress → coordinated unstick for whole group
+  haul_group_unstick_time: 2.8  # seconds all carriers share one wall-follow side
+  # Give up haul if not getting closer to nest entrance / home
+  haul_give_up_time: 6.0      # seconds without homeward progress → release part
+  haul_give_up_detours: 3     # failed ±90° detours without progress → also release
+  haul_progress_eps: 4.0      # world units closer to goal counts as progress
+  haul_grip_cooldown: 8.0     # seconds after release before this ant may grip again
+  # --- Response thresholds (Bonabeau; same code, emergent specialists) ---
+  young_forage_theta_min: 0.55
+  young_forage_theta_max: 0.85
+  mature_forage_theta: 0.20
+  mature_forage_time: 120.0
+  # --- Private route memory (Czaczkes: pheromone aids, memory persists) ---
+  food_memory_decay_rate: 0.003
+  food_memory_weight: 0.8
+  # --- Deposit modulation (Czaczkes 2013/2024; Devigne & Detrain 2006) ---
+  # Enter-once still; these only scale the *same* drop. No existing×mult volcano.
+  food_quality_deposit_scale: 1.0
+  deposit_distance_scale: 0.0012   # × trip_distance (farther food → more marks)
+  deposit_near_food: 2.6           # multiplier at the prey (Czaczkes ~high near food)
+  deposit_near_nest: 0.40          # multiplier at the nest (much weaker)
+  deposit_trail_suppress: 0.028    # 1/(1 + k·local) — strong trail → lay less
+  scout_deposit_boost: 1.30        # independent finders recruit harder (Beckers)
+  trail_encounter_radius: 12.0     # nestmates this close on the path
+  trail_encounter_deposit: 0.72    # lay less when bumping traffic (Czaczkes 2013b)
+  # --- Crowding / negative social feedback (Wendt, Czaczkes) ---
+  crowd_threshold: 4               # nestmates at pickup → weaker return trail
+  crowd_deposit_penalty: 0.48
+  crowd_avoid_count: 6             # outbound: down-weight a packed feeder
+  crowd_seek_scale: 0.28
+  crowd_butcher_max: 8             # extra ants peel off an overcrowded carcass
+  crowd_leave_rate: 0.40           # /s chance to leave when over max
+  # --- U-turns (Beckers, Deneubourg, Goss 1992) ---
+  # When the trail fades ahead, outbound ants probabilistically reverse.
+  uturn_enabled: true
+  uturn_rate: 0.50                 # /s while the trail is fading ahead
+  uturn_ahead_ratio: 0.50          # ahead < here × this → fading
+  uturn_cooldown: 1.8
+  uturn_lost_rate: 1.1             # /s just after dropping off a trail
+  # --- Area-restricted search after losing a trail or dropping prey ---
+  ars_duration: 6.5
+  ars_radius: 52.0
+  ars_meander: 1.80
+  # --- Energy / satiety (Mailleux: hungry colonies recruit harder) ---
+  energy_idle_drain: 0.002
+  energy_forage_drain: 0.006
+  energy_carry_drain: 0.010
+  energy_feed_rate: 0.34           # energy/s while feeding in nest
+  energy_feed_until: 0.92
+  energy_food_cost: 2.4            # store nutrition to refill 0→1
+  energy_return_threshold: 0.12    # give up an empty trip if this low
+  energy_min_leave: 0.22           # stay and feed if below this and store has food
+  energy_leave_hungry_boost: 1.35
+  energy_delivery_sip: 0.12        # small restore on a successful unload
+  # --- Antennation / encounter recruitment ---
+  # Meeting a returning loaded nestmate turns an explorer onto the outbound path.
+  antennation_radius: 11.0
+  antennation_rate: 1.6            # /s while overlapping a loaded nestmate
+  contact_boost_time: 3.2
+  contact_trail_boost: 1.40
+  # --- In-nest milling (workers do not freeze) ---
+  nest_mill_speed: 0.22
+  # Path-integration drift (real PI is noisy; nest scent takes over near home)
+  pi_error_sigma: 0.035
+
+locomotion:
+  persistence_weight: 1.15
+  turn_noise_sigma: 0.10
+  max_turn_rate: 3.2
+  meander_length: 12.0
+  meander_amplitude: 0.40
+  wall_follow_weight: 1.05
+  wall_sense_range: 24.0
+  # Outside nest: sense farther and detour around nest shell / obstacles
+  arena_wall_sense_range: 36.0
+  arena_wall_scale: 1.15          # enable outdoor wall avoidance (was 0)
+  obstacle_block_boost: 1.6       # extra wall weight when goal ray is blocked
+  separation_weight: 0.85
+  separation_radius: 14.0
+  nest_wall_boost: 1.35
+  nest_meander_scale: 0.50
+  nest_noise_scale: 0.65
+  arena_meander_boost: 1.35
+
+nest:
+  # Organic soil-mass nests (L. niger–like). layout: box keeps the old rooms.
+  # origin_tile = [col, row] top-left of the soil blob.
+  home:
+    name: "home"
+    layout: organic
+    preset: home
+    origin_tile: [8, 32]
+    soil_tiles: [54, 28]
+    wall_tiles: 2
+    gallery_width_tiles: 2      # brood / queen corridors (ants only)
+    haul_width_tiles: 5         # vestibule → dump + entrance (fits prey parts)
+    entrance_length_tiles: 7
+    cargo_path: false           # one worn hole, not a second cargo dock
+    light_level: 0.12
+    # chamber_tiles kept so box fallback / old sliders still parse
+    chamber_tiles: [16, 12]
+    tunnel_length_tiles: 7
+    tunnel_width_tiles: 5
+
+  empty_good:
+    name: "empty_good"
+    layout: organic
+    preset: good
+    origin_tile: [1620, 220]
+    soil_tiles: [36, 26]
+    wall_tiles: 2
+    gallery_width_tiles: 2
+    haul_width_tiles: 4
+    entrance_length_tiles: 6
+    light_level: 0.08
+    chamber_tiles: [14, 12]
+    tunnel_length_tiles: 6
+    tunnel_width_tiles: 4
+
+  empty_poor:
+    name: "empty_poor"
+    layout: organic
+    preset: poor
+    origin_tile: [780, 980]
+    soil_tiles: [40, 28]
+    wall_tiles: 2
+    gallery_width_tiles: 4
+    haul_width_tiles: 7         # wide, poorly defensible mouth
+    entrance_length_tiles: 5
+    light_level: 0.7
+    chamber_tiles: [20, 16]
+    tunnel_length_tiles: 5
+    tunnel_width_tiles: 7
+
+render:
+  bg_color: [34, 42, 36]
+  arena_floor: [52, 64, 48]
+  # Walls stay darker than floors so chambers read as cut-outs
+  wall_color: [72, 58, 46]
+  # Light sandy nest floors — black sprites need strong contrast
+  nest_floor: [132, 102, 76]
+  # Clay wall autotiles + packed-earth chamber floors (assets/nest/)
+  use_nest_tiles: true
+  nest_floor_bright: [176, 152, 118]
+  food_color: [220, 180, 50]
+  trail_heatmap_color: [255, 90, 40]
+  nest_heatmap_color: [60, 120, 255]
+  ui_text: [220, 220, 210]
+  show_grid: false
+  show_loco_debug: false      # V toggle: heading + steer sticks on all ants
+  show_pheromone: true
+  pheromone_alpha: 160
